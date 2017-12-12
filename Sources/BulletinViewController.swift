@@ -68,13 +68,6 @@ final class BulletinViewController: UIViewController, UIGestureRecognizerDelegat
         super.loadView()
         view.backgroundColor = .clear
 
-        let recognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(recognizer:)))
-        recognizer.delegate = self
-        recognizer.cancelsTouchesInView = false
-        recognizer.delaysTouchesEnded = false
-
-        view.addGestureRecognizer(recognizer)
-
         contentView.accessibilityViewIsModal = true
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
@@ -261,12 +254,6 @@ final class BulletinViewController: UIViewController, UIGestureRecognizerDelegat
         manager?.dismissBulletin(animated: true)
         return true
 
-    }
-
-    // MARK: - Touch Events
-
-    @objc private func handleTap(recognizer: UITapGestureRecognizer) {
-        dismissIfPossible()
     }
     
     // MARK: - Accessibility
