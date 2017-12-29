@@ -293,4 +293,3 @@ final class BulletinViewController: UIViewController, UIGestureRecognizerDelegat
     }
 
 }
- BulletinBoard
