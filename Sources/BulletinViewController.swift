@@ -11,285 +11,285 @@ import UIKit
 
 final class BulletinViewController: UIViewController, UIGestureRecognizerDelegate {
 
-    /**
-     * The stack view displaying the content of the card.
-     *
-     * - warning: You should not customize the distribution, axis and alignment of the stack, as this
-     * may break the layout of the card.
-     */
+  /**
+   * The stack view displaying the content of the card.
+   *
+   * - warning: You should not customize the distribution, axis and alignment of the stack, as this
+   * may break the layout of the card.
+   */
 
-    let contentStackView = UIStackView()
+  let contentStackView = UIStackView()
 
-    /**
-     * Indicates whether the bulletin can be dismissed by a tap outside the card.
-     */
+  /**
+   * Indicates whether the bulletin can be dismissed by a tap outside the card.
+   */
 
-    var isDismissable: Bool = false
+  var isDismissable: Bool = false
 
-    // MARK: - Activity Indicator
+  // MARK: - Activity Indicator
 
-    func displayActivityIndicator() {
+  func displayActivityIndicator() {
 
-        activityIndicator.startAnimating()
+    activityIndicator.startAnimating()
 
-        let animations = {
-            self.activityIndicator.alpha = 1
-            self.contentStackView.alpha = 0
-        }
-
-        UIView.animate(withDuration: 0.25, animations: animations) { _ in
-            UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, self.activityIndicator)
-        }
-
+    let animations = {
+      self.activityIndicator.alpha = 1
+      self.contentStackView.alpha = 0
     }
 
-    func hideActivityIndicator() {
-        activityIndicator.stopAnimating()
-        activityIndicator.alpha = 0
+    UIView.animate(withDuration: 0.25, animations: animations) { _ in
+      UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, self.activityIndicator)
     }
 
-    // MARK: - Private Interface Elements
+  }
 
-    private var panGesture: UIPanGestureRecognizer!
+  func hideActivityIndicator() {
+    activityIndicator.stopAnimating()
+    activityIndicator.alpha = 0
+  }
 
-    private let contentView = UIView()
-    private let activityIndicator = ActivityIndicator()
+  // MARK: - Private Interface Elements
 
-    private var containerBottomConstraint: NSLayoutConstraint!
+  private var panGesture: UIPanGestureRecognizer!
 
-    private var leadingConstraint: NSLayoutConstraint!
-    private var trailingConstraint: NSLayoutConstraint!
-    private var centerXConstraint: NSLayoutConstraint!
-    private var minWidthConstraint: NSLayoutConstraint!
-    private var contentLeadingConstraint: NSLayoutConstraint!
-    private var contentTrailingConstraint: NSLayoutConstraint!
-    private var contentBottomConstraint: NSLayoutConstraint!
+  private let contentView = UIView()
+  private let activityIndicator = ActivityIndicator()
 
-    // MARK: - Lifecycle
+  private var containerBottomConstraint: NSLayoutConstraint!
 
-    weak var manager: BulletinManager?
+  private var leadingConstraint: NSLayoutConstraint!
+  private var trailingConstraint: NSLayoutConstraint!
+  private var centerXConstraint: NSLayoutConstraint!
+  private var widthConstraint: NSLayoutConstraint!
+  private var contentLeadingConstraint: NSLayoutConstraint!
+  private var contentTrailingConstraint: NSLayoutConstraint!
+  private var contentBottomConstraint: NSLayoutConstraint!
 
-    override func loadView() {
+  // MARK: - Lifecycle
 
-        super.loadView()
-        view.backgroundColor = .clear
+  weak var manager: BulletinManager?
 
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.accessibilityViewIsModal = true
-        contentStackView.translatesAutoresizingMaskIntoConstraints = false
+  override func loadView() {
 
-        view.addSubview(contentView)
+    super.loadView()
+    view.backgroundColor = .clear
 
-        // Content View
+    contentView.translatesAutoresizingMaskIntoConstraints = false
+    contentView.accessibilityViewIsModal = true
+    contentStackView.translatesAutoresizingMaskIntoConstraints = false
 
-        contentView.layer.cornerRadius = 12
+    view.addSubview(contentView)
 
-        leadingConstraint = contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12)
-        trailingConstraint = contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12)
-        centerXConstraint = contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+    // Content View
 
-        minWidthConstraint = contentView.widthAnchor.constraint(equalToConstant: 444)
-        minWidthConstraint.priority = .defaultHigh
+    contentView.layer.cornerRadius = 12
 
-        let maxWidthConstraint = contentView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, constant: -24)
-        maxWidthConstraint.priority = .required
-        maxWidthConstraint.isActive = true
+    leadingConstraint = contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12)
+    trailingConstraint = contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12)
+    centerXConstraint = contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
 
-        containerBottomConstraint = contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        containerBottomConstraint.isActive = true
-        containerBottomConstraint.constant = bottomSpacingForCurrentLayout()
+    widthConstraint = contentView.widthAnchor.constraint(equalToConstant: 444)
+    widthConstraint.priority = UILayoutPriority.required
 
-        // Content Stack View
+    let maxWidthConstraint = contentView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, constant: -24)
+    maxWidthConstraint.priority = .required
+    maxWidthConstraint.isActive = true
 
-        contentView.addSubview(contentStackView)
+    containerBottomConstraint = contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+    containerBottomConstraint.isActive = true
+    containerBottomConstraint.constant = bottomSpacingForCurrentLayout()
 
-        contentLeadingConstraint = contentStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 36)
-        contentLeadingConstraint.isActive = true
+    // Content Stack View
 
-        contentTrailingConstraint = contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -36)
-        contentTrailingConstraint.isActive = true
+    contentView.addSubview(contentStackView)
 
-        contentBottomConstraint = contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
-        contentBottomConstraint.isActive = true
+    contentLeadingConstraint = contentStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 36)
+    contentLeadingConstraint.isActive = true
 
-        let topConstraint = contentView.topAnchor.constraint(equalTo: contentStackView.topAnchor, constant: -24)
-        topConstraint.isActive = true
-        topConstraint.priority = .defaultHigh
+    contentTrailingConstraint = contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -36)
+    contentTrailingConstraint.isActive = true
 
-        let minYConstraint = contentView.topAnchor.constraint(greaterThanOrEqualTo: topLayoutGuide.bottomAnchor)
-        minYConstraint.isActive = true
-        minYConstraint.priority = .required
+    contentBottomConstraint = contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
+    contentBottomConstraint.isActive = true
 
-        contentStackView.axis = .vertical
-        contentStackView.alignment = .fill
-        contentStackView.distribution = .fill
+    let topConstraint = contentView.topAnchor.constraint(equalTo: contentStackView.topAnchor, constant: -24)
+    topConstraint.isActive = true
+    topConstraint.priority = .defaultHigh
 
-        // Activity Indicator
+    let minYConstraint = contentView.topAnchor.constraint(greaterThanOrEqualTo: topLayoutGuide.bottomAnchor)
+    minYConstraint.isActive = true
+    minYConstraint.priority = .required
 
-        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+    contentStackView.axis = .vertical
+    contentStackView.alignment = .fill
+    contentStackView.distribution = .fill
 
-        view.addSubview(activityIndicator)
-        activityIndicator.leftAnchor.constraint(equalTo: contentStackView.leftAnchor).isActive = true
-        activityIndicator.rightAnchor.constraint(equalTo: contentStackView.rightAnchor).isActive = true
-        activityIndicator.topAnchor.constraint(equalTo: contentStackView.topAnchor).isActive = true
-        activityIndicator.bottomAnchor.constraint(equalTo: contentStackView.bottomAnchor).isActive = true
+    // Activity Indicator
 
-        activityIndicator.activityIndicatorViewStyle = .whiteLarge
-        activityIndicator.color = .black
+    activityIndicator.translatesAutoresizingMaskIntoConstraints = false
 
-        activityIndicator.alpha = 0
+    view.addSubview(activityIndicator)
+    activityIndicator.leftAnchor.constraint(equalTo: contentStackView.leftAnchor).isActive = true
+    activityIndicator.rightAnchor.constraint(equalTo: contentStackView.rightAnchor).isActive = true
+    activityIndicator.topAnchor.constraint(equalTo: contentStackView.topAnchor).isActive = true
+    activityIndicator.bottomAnchor.constraint(equalTo: contentStackView.bottomAnchor).isActive = true
 
-        contentView.backgroundColor = #colorLiteral(red: 0.9921568627, green: 1, blue: 1, alpha: 1)
-        setUpLayout(with: traitCollection)
+    activityIndicator.activityIndicatorViewStyle = .whiteLarge
+    activityIndicator.color = .black
 
-        // Pan Gesture
-        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture))
-        panGesture.maximumNumberOfTouches = 1
-        panGesture.cancelsTouchesInView = false
-        panGesture.delegate = self
+    activityIndicator.alpha = 0
 
-        contentView.addGestureRecognizer(panGesture)
+    contentView.backgroundColor = #colorLiteral(red: 0.9921568627, green: 1, blue: 1, alpha: 1)
+    setUpLayout(with: traitCollection)
 
-    }
+    // Pan Gesture
+    panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture))
+    panGesture.maximumNumberOfTouches = 1
+    panGesture.cancelsTouchesInView = false
+    panGesture.delegate = self
 
-    @objc private func handlePanGesture(gestureRecognizer: UIPanGestureRecognizer) {
+    contentView.addGestureRecognizer(panGesture)
 
-      switch gestureRecognizer.state {
-      case .began:
-        gestureRecognizer.setTranslation(.zero, in: contentView)
+  }
 
-      case .changed:
-        let translation = gestureRecognizer.translation(in: contentView)
-        updateContentView(forVerticalTranslation: translation.y)
+  @objc private func handlePanGesture(gestureRecognizer: UIPanGestureRecognizer) {
 
-      case .ended:
+    switch gestureRecognizer.state {
+    case .began:
+      gestureRecognizer.setTranslation(.zero, in: contentView)
 
-        let translation = gestureRecognizer.translation(in: contentView)
-        let dismissThreshold = 1/4 * contentView.frame.height
+    case .changed:
+      let translation = gestureRecognizer.translation(in: contentView)
+      updateContentView(forVerticalTranslation: translation.y)
 
-        guard translation.y >= dismissThreshold && isDismissable else {
+    case .ended:
 
-          UIView.animate(withDuration: 0.25) {
-            self.contentView.transform = .identity
-          }
+      let translation = gestureRecognizer.translation(in: contentView)
+      let dismissThreshold = 1/4 * contentView.frame.height
 
-          return
+      guard translation.y >= dismissThreshold && isDismissable else {
 
+        UIView.animate(withDuration: 0.25) {
+          self.contentView.transform = .identity
         }
 
-        dismissIfPossible()
-
-      default:
-        break
+        return
 
       }
-    }
 
-    private func updateContentView(forVerticalTranslation translation: CGFloat) {
+      dismissIfPossible()
 
-      let translationFactor: CGFloat = translation < 0 ? 1/2 : 2/3
-
-      let contentViewTranslation: CGFloat
-
-      if translation < 0 || !(isDismissable) {
-
-        let frictionTranslation = 30 * atan(translation/120) + translation/10
-        contentViewTranslation = frictionTranslation * translationFactor
-
-      } else {
-        contentViewTranslation = translation * translationFactor
-      }
-
-      contentView.transform = CGAffineTransform(translationX: 0, y: contentViewTranslation)
+    default:
+      break
 
     }
+  }
 
-    // MARK: - Layout
+  private func updateContentView(forVerticalTranslation translation: CGFloat) {
 
-    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+    let translationFactor: CGFloat = translation < 0 ? 1/2 : 2/3
 
-        coordinator.animate(alongsideTransition: { _ in
-            self.setUpLayout(with: newCollection)
-        })
+    let contentViewTranslation: CGFloat
 
+    if translation < 0 || !(isDismissable) {
+
+      let frictionTranslation = 30 * atan(translation/120) + translation/10
+      contentViewTranslation = frictionTranslation * translationFactor
+
+    } else {
+      contentViewTranslation = translation * translationFactor
     }
 
-    private func setUpLayout(with traitCollection: UITraitCollection) {
+    contentView.transform = CGAffineTransform(translationX: 0, y: contentViewTranslation)
 
-        switch traitCollection.horizontalSizeClass {
-        case .regular:
-            leadingConstraint.isActive = false
-            trailingConstraint.isActive = false
+  }
 
-            centerXConstraint.isActive = true
-            minWidthConstraint.isActive = true
+  // MARK: - Layout
 
-        case .compact:
-            leadingConstraint.isActive = true
-            trailingConstraint.isActive = true
+  override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
 
-            centerXConstraint.isActive = false
-            minWidthConstraint.isActive = false
+    coordinator.animate(alongsideTransition: { _ in
+      self.setUpLayout(with: newCollection)
+    })
 
-        default:
-            break
-        }
+  }
 
-        switch (traitCollection.verticalSizeClass, traitCollection.horizontalSizeClass) {
-        case (.regular, .regular):
-            contentLeadingConstraint.constant = 32
-            contentTrailingConstraint.constant = -32
-            contentBottomConstraint.constant = -24
+  private func setUpLayout(with traitCollection: UITraitCollection) {
 
-            contentStackView.spacing = 32
+    switch traitCollection.horizontalSizeClass {
+    case .regular:
+      leadingConstraint.isActive = false
+      trailingConstraint.isActive = false
 
-        default:
-            contentLeadingConstraint.constant = 24
-            contentTrailingConstraint.constant = -24
-            contentBottomConstraint.constant = -16
+      centerXConstraint.isActive = true
+      widthConstraint.isActive = true
 
-            contentStackView.spacing = 24
+    case .compact:
+      leadingConstraint.isActive = true
+      trailingConstraint.isActive = true
 
-        }
+      centerXConstraint.isActive = false
+      widthConstraint.isActive = false
 
+    default:
+      break
     }
 
-    func bottomSpacingForCurrentLayout() -> CGFloat {
+    switch (traitCollection.verticalSizeClass, traitCollection.horizontalSizeClass) {
+    case (.regular, .regular):
+      contentLeadingConstraint.constant = 32
+      contentTrailingConstraint.constant = -32
+      contentBottomConstraint.constant = -24
 
-        let bottomInset: CGFloat
+      contentStackView.spacing = 32
 
-        if #available(iOS 11.0, *) {
-            let safeBottomInset = view.safeAreaInsets.bottom
-            bottomInset = safeBottomInset > 0 ? safeBottomInset : 12
-        } else {
-            bottomInset = 12
-        }
+    default:
+      contentLeadingConstraint.constant = 24
+      contentTrailingConstraint.constant = -24
+      contentBottomConstraint.constant = -16
 
-        return -bottomInset
+      contentStackView.spacing = 24
 
     }
 
-    override func viewSafeAreaInsetsDidChange() {
-        containerBottomConstraint.constant = bottomSpacingForCurrentLayout()
+  }
+
+  func bottomSpacingForCurrentLayout() -> CGFloat {
+
+    let bottomInset: CGFloat
+
+    if #available(iOS 11.0, *) {
+      let safeBottomInset = view.safeAreaInsets.bottom
+      bottomInset = safeBottomInset > 0 ? safeBottomInset : 12
+    } else {
+      bottomInset = 12
+    }
+
+    return -bottomInset
+
+  }
+
+  override func viewSafeAreaInsetsDidChange() {
+    containerBottomConstraint.constant = bottomSpacingForCurrentLayout()
+  }
+
+  /// dismisses the presnted BulletinViewController if isDissmisable is set to true
+  @discardableResult
+  private func dismissIfPossible() -> Bool {
+    
+    guard isDismissable else {
+      return false
     }
     
-    /// dismisses the presnted BulletinViewController if isDissmisable is set to true
-    @discardableResult
-    private func dismissIfPossible() -> Bool {
-    
-        guard isDismissable else {
-            return false
-        }
-    
-        manager?.dismissBulletin(animated: true)
-        return true
+    manager?.dismissBulletin(animated: true)
+    return true
 
-    }
-    
-    // MARK: - Accessibility
-    
-    override func accessibilityPerformEscape() -> Bool {
-        return dismissIfPossible()
-    }
+  }
+
+  // MARK: - Accessibility
+
+  override func accessibilityPerformEscape() -> Bool {
+    return dismissIfPossible()
+  }
 
 }
